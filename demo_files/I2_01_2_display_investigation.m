@@ -1,4 +1,6 @@
-%% 各種画像フォーマットの読み込み %%%%%%%%%%%%%%%
+%% 各種画像フォーマットの読み込み
+
+%% 複数のフォーマットの自動判別
 A=imread('peppers.png');    % 拡張子によりファイル形式自動判定
 B=imread('street1.jpg');
 C=imread('cameraman.tif');
@@ -14,7 +16,7 @@ montage(D,map);truesize;shg % モンタージュ表示
 imtool(A)              % 画像ビューアー アプリケーション
 
 %% イメージブラウザ：フォルダ内の様々なサイズ・データ型の画像を一覧表示
-imageBrowser([matlabroot, '\toolbox\images\imdata\']);
+imageBrowser(fullfile(matlabroot,'toolbox','images','imdata'));
 
 %% ボリュームビューアー
 load mri           % 128x128x1x27    画像の取込み
@@ -32,32 +34,21 @@ figure;mesh(x,y,z,'edgecolor',[0 0 0]);axis square;  %座標表示
 warp(x,y,z,flipud(X),map);axis square;shg  %テクスチャマッピング
 
 %% DICOMブラウザーによるファイルの確認
-dicomBrowser(fullfile(matlabroot,'toolbox/images/imdata'))
+dicomBrowser(fullfile(matlabroot,'toolbox','images','imdata'))
+
+%% スライスビューワー
+sliceViewer(D1);
+
+%% オルソスライスビューワー
+orthosliceViewer(D1);
+
+%% 任意の切断面の作成と可視化
+point = [73 50 15.5]; % 切断平面上の点
+normal = [0 15 20]; % 法線ベクトル
+[B,x,y,z] = obliqueslice(D1,point,normal);
+surf(x,y,z,B,'EdgeColor','None');
 
 %% 終了
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% imshow(C);shg     % imtoolの機能の一部を使うことも可能
-% imcrop            % トリミング：領域選択後、Wクリック
-% [x,y]=getpts      % 点の指定：クリックで指定、Wクリックで終了
-% h=imrect            % 四角形の領域をマウスで指定
-% position=wait(h)  % 四角形領域をマウスでダブルクリックで、[xmin ymin width height] を返す。
-% C1 = imcrop(C, position);  % トリミング
-% figure;imshow(C1);  % 表示
-
 
 %% 
 % Copyright 2018 The MathWorks, Inc.
