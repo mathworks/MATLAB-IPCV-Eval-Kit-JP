@@ -5,12 +5,12 @@ Copyright 2020 The MathWorks, Inc.
 
 MATLABによる画像処理・コンピュータービジョン関連の機能をご評価いただくためのキットです。機能紹介スライドとデモサンプルが含まれています。これからMATLABで画像処理をはじめる方や最新の画像処理・コンピュータービジョン・ディープラーニングの機能を試したい方におすすめです。
 
-* MATLAB/Simulinkによる画像の取り扱い(DICOM)
+* MATLAB/Simulinkによる画像の取り扱い(BMP/JPEG/PNG/TIFF/DICOM)
 * 各種画像処理例(各種画像データ読み込み/2値化/幾何学変換/位置合わせ/フィルタ/モルフォロジー処理/セグメンテーション)
-* マルチコア/GPUコード生成/FPGA連携機能例/深層強化学習
+* マルチコア/GPUコード生成/FPGA連携機能例/深層強化学習(DQN/AC3)
 * コンピュータービジョン処理例(特徴点マッチング/動体検出/トラッキング/ステレオビジョン/LiDAR点群処理)
 * 画像の機械学習処理例(SVM/線形判別)
-* ディープラーニング処理例(CNN/転移学習/Faster R-CNN/YOLO v2/SegNet/FCN/U-Net/3D CNN)
+* ディープラーニング処理例(CNN/転移学習/Faster R-CNN/YOLO v2/YOLO v3/SSD/SegNet/FCN/U-Net/3D CNN/PointNet)
 
 ディープラーニングのついては[ディープラーニング評価キット](https://jp.mathworks.com/matlabcentral/fileexchange/70156)もご参照ください。
 
