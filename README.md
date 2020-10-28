@@ -17,3 +17,24 @@ MATLABによる画像処理・コンピュータービジョン関連の機能�
 ## 使い方
 
 使い方は[画像処理・コンピュータビジョン評価キットの操作ガイド](https://jp.mathworks.com/videos/how-to-use-the-image-processing-and-computer-vision-evaluation-kit-1540461587600.html)をご覧ください。
+
+
+## 必要製品一覧
+* MATLAB
+* Image Processing Toolbox
+* Computer Vision Toolbox
+* Deep Learning Toolbox
+* Parallel Computing Toolbox
+* Statistics and Machine Learning Toolbox
+
+## 推奨製品一覧
+* Image Acquisition Toolbox
+* Lidar Toolbox
+* Automated Driving Toolbox
+* Sensor Fusion and Tracking Toolbox
+* Navigation Toolbox
+* Robotics System Toolbox
+* UAV Toolbox
+* ROS Toolbox
+* MATLAB Coder
+* GPU Coder
