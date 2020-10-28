@@ -23,7 +23,7 @@ areas = stats.Area           % 各々の面積
 
 mean(areas)                     % 面積の平均
 
-figure;hist(areas);             % 面積のヒストグラム表示
+figure;histogram(areas);             % 面積のヒストグラム表示
 
 figure;imshow(I);improfile     % 線分に沿ったピクセル値：2点をマウス右クリックで指定しリターン
 
@@ -95,7 +95,7 @@ doc                % 充実したドキュメント
 %% [参考]
 % 閾値を自動的に求める関数
 Th = graythresh(I)              % 大津法を使いて画像の二値化用閾値を求める
-Ibw = im2bw(I, Th);             % 求めた閾値を用いて画像の二値化
+Ibw = imbinarize(I, Th);             % 求めた閾値を用いて画像の二値化
 figure; imshow(Ibw);            % 画像の表示
 
 

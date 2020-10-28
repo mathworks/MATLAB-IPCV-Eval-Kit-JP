@@ -21,7 +21,7 @@ trainingFeatures  = zeros(10*12,hogFeatureSize, 'single');
 for digit = 1:10   % 1=>文字'0'
   for i = 1:12         % 各手書き数字ごとに12枚のトレーニング用画像
     img = read(trainSet(digit), i);  %トレーニング画像の読込み
-    img = im2bw(img,graythresh(img));   % 二値化
+    img = imbinarize(img,graythresh(img));   % 二値化
              
     trainingFeatures((digit-1)*12+i,:) = extractHOGFeatures(img,'CellSize',cellSize);
   end

@@ -10,7 +10,7 @@ figure;imshow(G);
 
 %% モルフォロジー処理で、字の部分のみを残す
 G2 = imbothat(G, ones(13));   imshow(G2); %黒い文字を残す：Close - 原画
-G3 = im2bw(G2,graythresh(G2));imshow(G3); %二値化
+G3 = imbinarize(G2,graythresh(G2));imshow(G3); %二値化
 G4 = imopen(G3, ones(5));     imshow(G4); %細い線を除去
 G5 = bwareaopen(G4,200);                  %小さいごみを除去
 imshow(G5);

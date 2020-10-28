@@ -12,7 +12,7 @@ I2 = insertText(I1, [20, 400], ['Count: ' num2str(size(c,1))], 'TextColor','whit
 figure;imshow(I2);
 
 %% 半径のヒストグラム表示
-figure;hist(r, [1:44]);
+figure;histogram(r, [1:44]);
 
 %% 大小の大きさを識別し、結果の表示
 ind_l = r > 37

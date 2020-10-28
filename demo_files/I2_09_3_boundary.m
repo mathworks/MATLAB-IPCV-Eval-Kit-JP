@@ -22,7 +22,7 @@ hold off
 %% bwtraceboundary : 2値画像内の一つの境界をトレース
 G = imread('coins.png');
 figure;imshow(G);
-BW = im2bw(G);
+BW = imbinarize(G);
 imtool(BW);
 
 dim = size(BW)

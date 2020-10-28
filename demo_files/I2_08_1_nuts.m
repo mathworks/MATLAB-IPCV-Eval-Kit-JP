@@ -51,7 +51,7 @@ stats=regionprops('table', BWd, 'Area', 'Centroid')  % R2015a でテーブル出力に対
 size(stats, 1)
 
 %% 面積のヒストグラムをプロット
-figure;hist([stats.Area])
+figure;histogram([stats.Area])
 
 %% イメージの解析 アプリケーション で BWdを読込み
 

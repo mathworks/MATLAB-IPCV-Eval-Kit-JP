@@ -2,7 +2,7 @@ f1=figure(1); clf reset
 set(f1,'units','normalized','position',[0.3652 0.3008 0.6016 0.6016])
 
 x=randn(500,1);
-hist(x,20)
+histogram(x,20)
 title('ƒqƒXƒgƒOƒ‰ƒ€','fontname','‚l‚r ƒSƒVƒbƒN')
 
 histfit(x,20)

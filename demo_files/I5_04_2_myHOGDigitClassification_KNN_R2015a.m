@@ -26,7 +26,7 @@ trainingLabels    = zeros(10*101,1);
 for digit = 0:9   % 文字'0'～'9'
   for i = 1:101         % 各数字ごとに101枚のトレーニング用画像
     img = read(trainSet(digit+1), i);  %トレーニング画像の読込み       trainSet()は、1から始まるので、+1
-    img = im2bw(img,graythresh(img));   % 二値化
+    img = imbinarize(img,graythresh(img));   % 二値化
              
     trainingFeatures((digit)*101+i,:) = extractHOGFeatures(img,'CellSize',cellSize);
     trainingLabels((digit)*101+i)     = digit;
@@ -41,7 +41,7 @@ cntTrue = 0;
 for digit = 0:9   % 
   for i = 1:12         % 各数字ごとに12枚の手書き文字
     img = read(testSet(digit+1), i);    % testSet()は、1から始まるので、+1
-    BW = im2bw(img,graythresh(img));    % 2値化
+    BW = imbinarize(img,graythresh(img));    % 2値化
 
     testFeatures = extractHOGFeatures(BW,'CellSize',cellSize);
     predictedNum = predict(knnModel5, testFeatures);           % testFeature を配列にして、あとでまとめて判定も可

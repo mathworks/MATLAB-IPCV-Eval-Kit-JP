@@ -38,10 +38,15 @@ matchedPointsI   = vPointsI(  indexPairs(:, 2));  % I上の位置取出
 figure;
 showMatchedFeatures(Iref, I, matchedPointsRef, matchedPointsI, 'montage'); truesize;
 
-%% 変換行列の推定(RANSAC)と、誤対応点の除去、正対応点の表示
-[tform, inlierPointsRef, inlierPointsI] = ...
-    estimateGeometricTransform(matchedPointsRef, matchedPointsI, 'projective', 'MaxDistance', 3);
+%% 変換行列の推定(MSAC)と、誤対応点の除去、正対応点の表示
+[tform, inlierIndex] = ...
+    estimateGeometricTransform2D(matchedPointsRef, matchedPointsI, 'projective', 'MaxDistance', 3);
+
+inlierPointsRef = matchedPointsRef.Location(inlierIndex,:);
+inlierPointsI   = matchedPointsI.Location(inlierIndex,:);
+
 figure; showMatchedFeatures(Iref, I, inlierPointsRef, inlierPointsI, 'montage');
+
 
 %% 得られた変換行列の表示
 tform.T
@@ -54,50 +59,4 @@ foundObj = insertShape(I, 'Polygon', reshape(newPolygonRef',[1 8]), 'Color','red
 figure; imshow(foundObj);
 
 %% 終了
-
-
-
-
-
-
-% 
-% 
-% 
-% 
-% %% 見つかった物体の位置を白く表示
-% Orig = true(size(Iref(:,:,1)));
-% foundObj = imwarp(Orig, tform, 'OutputView', imref2d(size(I)));
-% figure; imshow(foundObj);
-% 
-% %% 元画像に重ねて表示
-% figure;imshowpair(I, foundObj, 'blend');
-% 
-% %% 見つかった物体の位置の各種情報の取得
-% stats = regionprops(foundObj, 'Centroid')      % 領域の重心
-% 
-% %% 底辺の角度 (ポリゴンの底辺の2点の座標から計算)
-% angleBottom = atan2d( -1 * (newPolygonRef(2,3) - newPolygonRef(2,4)), ...
-%                             newPolygonRef(1,3) - newPolygonRef(1,4)  )   % 単位は度
-% 
-% %% 非検索画像上の物体部分を抽出
-% croppedI = I;
-% croppedI(repmat(~foundObj, [1 1 3])) = 0;
-% figure; imshow(croppedI);
-%                 
-% %% 検索物体の画像を幾何学的変換
-% convertedRef = imwarp(Iref, tform, 'OutputView', imref2d(size(I)));
-% figure; imshow(convertedRef);
-% 
-% %% 有効な対応点の数
-% inlierPointsRef.Count
-% 
-% %% 元の画像上の点を変換し、残ったマッチングエラーを計算
-% inlierPointsRef1 = transformPointsForward(tform, inlierPointsRef.Location);
-% 
-% dis = (inlierPointsI.Location - inlierPointsRef1) .^2
-% dis1 = sum(sqrt(dis(:,1) + dis(:,2)))
-% 
-% 
-% %% 
-% 
-% % Copyright 2015 The MathWorks, Inc.
+% % Copyright 2020 The MathWorks, Inc.

@@ -47,7 +47,7 @@ stat=regionprops('table', Ibw, 'Area', 'Centroid')  % struct/table, 面積、[x座標
 A=[stat.Area]                 % 求まった各面積
 mean(A)                       % 面積の平均
 
-hist(A);           % もしくはAをワークスペースで選択後、
+histogram(A);           % もしくはAをワークスペースで選択後、
                    % ツールストリップのhist選択
 title('面積分布', 'FontSize',16);
 %% 終了

@@ -62,7 +62,7 @@ A = [stats.Area]     % 求まった各面積
 %% 面積の平均
 mean(A)
 %% ヒストグラム表示
-figure;hist(A)
+figure;histogram(A)
 
 %% 端が切れている領域を削除
 L1 = imclearborder(L,4);

@@ -105,7 +105,7 @@ mean([stat.Area])
 %% 粒子の個々の面積
 A=[stat.Area]
 %% ヒストグラム表示
-figure;hist(A, [1700:100:2500]);
+figure;histogram(A,1700:100:2500);
 %% 総面積
 sum([stat.Area])
 

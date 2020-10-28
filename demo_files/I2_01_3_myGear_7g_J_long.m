@@ -38,7 +38,7 @@ imshowpair(BW, BWclear);shg;   % 白：変化ない部分、緑：元の画像のみに存在
 stats = regionprops('table', BWclear, 'Area', 'Centroid')  % R2015a でテーブル出力に対応
 
 %% [グラフ化] ヒストグラムの表示   範囲を[最小:最大]で指定
-figure; hist([stats.Area], [1:179]);
+figure; histogram([stats.Area], [1:179]);
 
 %% [結果の可視化]
 ind = find([stats.Area] < 100);  % ベクトルと数値の比較

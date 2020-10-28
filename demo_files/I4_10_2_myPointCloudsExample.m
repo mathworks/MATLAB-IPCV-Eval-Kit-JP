@@ -134,24 +134,24 @@ tformICP.T     % 変換(射影)行列を確認
 ptCloudAlignedICP = pctransform(ptCloudCurrent, tformICP);
 
 %表示
-subplot(2,2,1);pcshow(ptCloudRef, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+subplot(3,2,1);pcshow(ptCloudRef, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('1st'); view(0,-90); box on;
-subplot(2,2,2);pcshow(ptCloudCurrent, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+subplot(3,2,2);pcshow(ptCloudCurrent, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('2nd'); view(0,-90); box on;
-subplot(2,2,3);pcshow(ptCloudAlignedICP, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+subplot(3,2,3);pcshow(ptCloudAlignedICP, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('2nd (Aligned with ICP)'); view(0,-90); box on; shg;
 
 %% NDT(normal-distributions transform) algorithmによるレジストレーション
 % レジストレーション（2つの点群間の変換行列を推定）
 gridStep = 0.5;
-tformICP = pcregisterndt(moving,fixed,gridStep)
-tformICP.T     % 変換(射影)行列を確認
+tformNDT = pcregisterndt(moving,fixed,gridStep)
+tformNDT.T     % 変換(射影)行列を確認
 
 % (間引きなしのデータに対し) 幾何学的変換し、2番目の点群を、1番目の点群の座標へ変換･表示
-ptCloudAlignedNDT = pctransform(ptCloudCurrent, tformICP);
+ptCloudAlignedNDT = pctransform(ptCloudCurrent, tformNDT);
 
 %表示
-subplot(2,2,4);pcshow(ptCloudAlignedNDT, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+subplot(3,2,4);pcshow(ptCloudAlignedNDT, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('2nd (Aligned with NDT)'); view(0,-90); box on; shg;
 
 %% CPD(coherent point drift)アルゴリズムによる非剛体点群レジストレーション
@@ -164,8 +164,24 @@ tformCPD = pcregistercpd(moving,fixed);
 ptCloudAlignedCPD = pctransform(moving, tformCPD);
 
 %表示
-figure; pcshow(ptCloudAlignedCPD, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+subplot(3,2,5);pcshow(ptCloudAlignedCPD, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+%figure; pcshow(ptCloudAlignedCPD, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('2nd (Aligned with CPD)'); view(0,-90); box on; shg;
+
+%% 位相限定相関法(Phase-Only Correlation) algorithmによるレジストレーション
+% レジストレーション（2つの点群間の変換行列を推定）
+gridSizePOC = 100;
+gridStepPOC = 0.5;
+
+tformPOC = pcregistercorr(moving,fixed,gridSizePOC,gridStepPOC);
+tformPOC.T     % 変換(射影)行列を確認
+
+% (間引きなしのデータに対し) 幾何学的変換し、2番目の点群を、1番目の点群の座標へ変換･表示
+ptCloudAlignedPOC = pctransform(ptCloudCurrent, tformPOC);
+
+%表示
+subplot(3,2,6);pcshow(ptCloudAlignedPOC, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18);
+xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); title('2nd (Aligned with POC)'); view(0,-90); box on; shg;
 
 %% 2つの3次元点群を統合･表示
 mergeSize = 0.015;   % 1.5cmのbox grid filterで、重複領域をフィルタリング。
@@ -227,7 +243,9 @@ rng('default');
 model1        % planeModel オブジェクト: ax+by+cz+d=0 の係数、法線ベクトル
 
 %% 全3次元点群データに、推定した面を重ね書き
-figure; pcshow(ptCloudSceneICP, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18); hold on;
+%figure; pcshow(ptCloudSceneICP, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18); hold on;
+figure; pcshow(ptCloudSceneICP, 'MarkerSize',18); hold on;
+
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)'); box on
 
 h1 = plot(model1); hold off
@@ -244,15 +262,16 @@ ptCloudScene1 = pctransform(ptCloudSceneICP, affine3d(A));
 figure; pcshow(ptCloudScene1, 'VerticalAxis','Y', 'VerticalAxisDir', 'Down', 'MarkerSize',18)
 xlabel('X (m)');ylabel('Y (m)');zlabel('Z (m)'); box on;
 
+%% normalRotation関数を使用して床面を、XY平面に平行にする･表示
+referenceVector = [0 0 -1]; % 床面が参照ベクトルに対し水平になるように設定
+tform = normalRotation(model1,referenceVector); % 参照ベクトルを基準に面の法線との回転行列を計算
+
+ptCloudScene2 = pctransform(ptCloudSceneICP, rigid3d(pinv(tform.T))); % 逆回転
+
+figure; pcshow(ptCloudScene2, 'MarkerSize',18)
+xlabel('X (m)');ylabel('Y (m)');zlabel('Z (m)'); box on;
+
 %%  終了
-
-
-
-
-
-
-
-
 
 
 
@@ -351,6 +370,5 @@ end   %while
 
 
 
-
-%% Copyright 2015 The MathWorks, Inc.
+%% Copyright 2020 The MathWorks, Inc.
 

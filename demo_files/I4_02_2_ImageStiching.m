@@ -42,7 +42,7 @@ for n = 2:numImages
     matchedPointsPrev = pointsPrevious(indexPairs(:,2), :);
 
     % Estimate the transformation between I(n) and I(n-1).
-    tforms(n) = estimateGeometricTransform(matchedPoints, matchedPointsPrev,...
+    tforms(n) = estimateGeometricTransform2D(matchedPoints, matchedPointsPrev,...
         'projective', 'Confidence', 99.9, 'MaxNumTrials', 2000);
 
     % Compute T(n) * T(n-1) * ... * T(1)
@@ -119,5 +119,5 @@ figure
 imshow(panorama)
 
 %% 
-% Copyright 2014 The MathWorks, Inc.
+% Copyright 2020 The MathWorks, Inc.
 

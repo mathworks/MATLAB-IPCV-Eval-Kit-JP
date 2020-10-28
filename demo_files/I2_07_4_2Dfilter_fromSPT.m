@@ -10,7 +10,7 @@ b = firls(N,[0 Fpass Fstop 1],[1 1 0 0],[Wpass Wstop]) %Å¬“ñæ  üŒ`ˆÊ‘Š FIR ƒ
 freqz(b,1) 
 
 %% ã‹L‚Ì‚±‚Æ‚ğAFDATool‚É‚æ‚èİŒv‚·‚éê‡
-fdatool       % İŒv‚ªŠ®—¹ŒãAƒtƒ@ƒCƒ‹ -> ƒGƒNƒXƒ|[ƒg
+filterDesigner       % İŒv‚ªŠ®—¹ŒãAƒtƒ@ƒCƒ‹ -> ƒGƒNƒXƒ|[ƒg
 
 %% 1ŸŒ³ƒtƒBƒ‹ƒ^‚Ì2ŸŒ³‰»
 H2 = ftrans2(b);    % 1ŸŒ³FIRƒtƒBƒ‹ƒ^‚©‚çA‰~‘ÎÌ2ŸŒ³ƒtƒBƒ‹ƒ^İŒv
