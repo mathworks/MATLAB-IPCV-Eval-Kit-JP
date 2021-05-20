@@ -268,7 +268,7 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
     % ※下記の2条件を同時に満たす場合にキーフレームとする
     %
     % 1. 最後のキーフレームから少なくとも20フレーム経過しているか、
-    %    80個のマップ点より現在のフレームのトラック数が少ない。 
+    %    100個のマップ点より現在のフレームのトラック数が少ない。 
     %
     % 2. 現在のフレームでトラックしたマップ点の数が、
     %    参照キーフレームによるトラックの数の90%より少ない。
@@ -340,14 +340,13 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
             % ループクロージャの接続を追加
             [isLoopClosed, mapPointSet, vSetKeyFrames] = helperAddLoopConnections(...
                 mapPointSet, vSetKeyFrames, validLoopCandidates, currKeyFrameId, ...
-                currFeatures, currPoints, intrinsics, scaleFactor, loopEdgeNumMatches);
+                currFeatures, currPoints, loopEdgeNumMatches);
         end
     end
     
     % ループクロージャが検出できなかった場合はデータベースに画像を追加
     if ~isLoopClosed
-        currds = imageDatastore(imds.Files{currFrameIdx});
-        addImages(loopDatabase, currds, 'Verbose', false);
+        addImages(loopDatabase,  subset(imds, currFrameIdx), 'Verbose', false);
         loopCandidates= [loopCandidates; currKeyFrameId];
     end
     
@@ -361,11 +360,12 @@ end
 %% 全てのキーフレームで最適化
 
 % ポーズグラフの最適化
-vSetKeyFramesOptim = optimizePoses(vSetKeyFrames, minNumMatches, 'Tolerance', 1e-16, 'Verbose', true);
+minNumMatches      = 20;
+[vSetKeyFramesOptim, poseScales] = optimizePoses(vSetKeyFrames, minNumMatches, 'Tolerance', 1e-16);
 
 % ポーズグラフの最適化後にマップ点を更新
 mapPointSet = helperUpdateGlobalMap(mapPointSet, directionAndDepth, ...
-    vSetKeyFrames, vSetKeyFramesOptim);
+    vSetKeyFrames, vSetKeyFramesOptim, poseScales);
 
 updatePlot(mapPlot, vSetKeyFrames, mapPointSet);
 
@@ -511,7 +511,7 @@ numPointsRefKeyFrame = numel(findWorldPointsInView(mapPoints, refKeyFrameId));
 tooManyNonKeyFrames = currFrameIndex >= lastKeyFrameIndex + 20;
 
 % Track less than 90 map points
-tooFewMapPoints     = numel(mapPointsIndices) < 90;
+tooFewMapPoints     = numel(mapPointsIndices) < 100;
 
 % Tracked map points are fewer than 90% of points tracked by
 % the reference key frame
@@ -546,7 +546,7 @@ end
 % |*helperUpdateGlobalMap update 3-D locations of map points after pose graph optimization
 
 function [mapPointSet, directionAndDepth] = helperUpdateGlobalMap(...
-    mapPointSet, directionAndDepth, vSetKeyFrames, vSetKeyFramesOptim)
+    mapPointSet, directionAndDepth, vSetKeyFrames, vSetKeyFramesOptim, poseScales)
 %helperUpdateGlobalMap update map points after pose graph optimization
 posesOld     = vSetKeyFrames.Views.AbsolutePose;
 posesNew     = vSetKeyFramesOptim.Views.AbsolutePose;
@@ -558,7 +558,9 @@ indices = 1:mapPointSet.Count;
 % the corresponding major view
 for i = 1: mapPointSet.Count
     majorViewIds = directionAndDepth.MajorViewId(i);
-    tform = posesOld(majorViewIds).T \ posesNew(majorViewIds).T ;
+    poseNew = posesNew(majorViewIds).T;
+    poseNew(1:3, 1:3) = poseNew(1:3, 1:3) * poseScales(majorViewIds);
+    tform = posesOld(majorViewIds).T \ poseNew;
     positionsNew(i, :) = positionsOld(i, :) * tform(1:3,1:3) + tform(4, 1:3);
 end
 mapPointSet = updateWorldPoints(mapPointSet, indices, positionsNew);

@@ -47,5 +47,18 @@ I = insertObjectAnnotation(I,'Rectangle',bboxA,labelsA);
 J = insertObjectAnnotation(J,'Rectangle',bboxB,labelsB);
 imshowpair(I,J,'montage')
 
+%% 画像と境界ボックスの削除(スケールと比率でランダムに削除）
+scale = [0.2,0.3];
+dimensionRatio = [1,10;30,100];
+win = randomWindow2d(inputSize,'Scale',scale,'DimensionRatio',dimensionRatio);
+J = imerase(I,win);
+[bboxB,indices] = bboxerase(bboxA,win);
+labelsB = labelsA(indices);
+annotatedI = insertObjectAnnotation(I,'Rectangle',bboxA,labelsA);
+annotatedJ = insertObjectAnnotation(J,'Rectangle',bboxB,labelsB);
+figure
+montage({annotatedI,annotatedJ})
+title(['Input | Random Erase Output'])
+
 %%
 % _Copyright 2019 The MathWorks, Inc._
