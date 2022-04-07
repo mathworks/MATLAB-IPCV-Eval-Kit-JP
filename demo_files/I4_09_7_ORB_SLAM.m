@@ -1,7 +1,12 @@
 %% 単眼カメラによるVisual SLAM
-% ORB-SLAMによる動画からカメラ軌跡と点群マップの推定
-% 詳細な動作に関しては下記URLの例題を参照
+
+% 【参考例題】
+
+% 1. RGB画像によるVisual SLAM(ORB-SLAM) <--このサンプルはこちらを参考に作成しています。
 % https://www.mathworks.com/help/releases/R2020a/vision/examples/monocular-visual-simultaneous-localization-and-mapping.html
+
+% 2. RGB画像と深度画像によるVisual SLAM(ORB-SLAM2)
+% https://jp.mathworks.com/help/releases/R2022a/vision/ug/visual-slam-with-an-rgbd-camera.html
 
 
 % 実行に必要なサポート関数へのパスを追加
@@ -181,6 +186,16 @@ mapPointSet   = addCorrespondences(mapPointSet, preViewId, newPointIdx, indexPai
 % 2番目のキーフレームにおける3Dマップ点に一致する画像点を追加
 mapPointSet   = addCorrespondences(mapPointSet, currViewId, newPointIdx, indexPairs(:,2));
 
+%% 場所認識のデータベースを初期化
+% 予め用意したBag of Featuresのデータを読み込み
+bofData         = load('bagOfFeaturesDataSLAM.mat');
+
+% 初期化
+loopDatabase    = invertedImageIndex(bofData.bof,"SaveFeatureLocations", false);
+
+% 最初の2つのキーフレームの特徴をデータベースに追加
+addImageFeatures(loopDatabase, preFeatures, preViewId);
+addImageFeatures(loopDatabase, currFeatures, currViewId);
 
 %% 最初のバンドル調整と結果の可視化
 
@@ -191,7 +206,8 @@ cameraPoses  = poses(vSetKeyFrames);
 [refinedPoints, refinedAbsPoses] = bundleAdjustment(xyzWorldPoints, tracks, ...
     cameraPoses, intrinsics, 'FixedViewIDs', 1, ...
     'PointsUndistorted', true, 'AbsoluteTolerance', 1e-7,...
-    'RelativeTolerance', 1e-15, 'MaxIteration', 50);
+    'RelativeTolerance', 1e-15, 'MaxIteration', 20, ...
+    'Solver', 'preconditioned-conjugate-gradient');
 
 % マップ点の奥行きの中央値を使ってマップとカメラ位置をスケーリング
 medianDepth   = median(vecnorm(refinedPoints.'));
@@ -240,6 +256,7 @@ addedFramesIdx    = [1; lastKeyFrameIdx];
 isLoopClosed      = false;
 
 % Main loop
+isLastFrameKeyFrame = true;
 while ~isLoopClosed && currFrameIdx < numel(imds.Files)  
     currI = readimage(imds, currFrameIdx);
     
@@ -260,10 +277,14 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
     % ローカルマップのトラック
     % refKeyFrameId:      現在のフレームとの共視認性が最も高い参照キーフレームのViewId
     % localKeyFrameIds:   現在のフレームと接続するキーフレームのViewId
-    [refKeyFrameId, localKeyFrameIds, currPose, mapPointsIdx, featureIdx] = ...
+    numSkipFrames     = 20;
+    numPointsKeyFrame = 100;
+    [localKeyFrameIds, currPose, mapPointsIdx, featureIdx, isKeyFrame] = ...
         helperTrackLocalMap(mapPointSet, directionAndDepth, vSetKeyFrames, mapPointsIdx, ...
-        featureIdx, currPose, currFeatures, currPoints, intrinsics, scaleFactor, numLevels);
-   
+        featureIdx, currPose, currFeatures, currPoints, intrinsics, scaleFactor, numLevels, ...
+        isLastFrameKeyFrame, lastKeyFrameIdx, currFrameIdx, numSkipFrames, numPointsKeyFrame);
+
+
     % 現在のフレームがキーフレームか確認 
     % ※下記の2条件を同時に満たす場合にキーフレームとする
     %
@@ -272,8 +293,6 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
     %
     % 2. 現在のフレームでトラックしたマップ点の数が、
     %    参照キーフレームによるトラックの数の90%より少ない。
-    isKeyFrame = helperIsKeyFrame(mapPointSet, refKeyFrameId, lastKeyFrameIdx, ...
-        currFrameIdx, mapPointsIdx);
     
     % マッチした特徴点の可視化
     updatePlot(featurePlot, currI, currPoints(featureIdx));
@@ -281,7 +300,10 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
     % キーフレームでなかった場合は次のフレーム処理へ
     if ~isKeyFrame
         currFrameIdx = currFrameIdx + 1;
+        isLastFrameKeyFrame = false;
         continue
+    else
+        isLastFrameKeyFrame = true;
     end
     
     % 現在のキーフレームIDの更新
@@ -319,35 +341,27 @@ while ~isLoopClosed && currFrameIdx < numel(imds.Files)
     % Loop Closure
     % ==============
     
-    % ループクロージャーのデータベースを初期化
-    if currKeyFrameId == 3
-        % 別途用意しておいたBag Of Featuresのデータを読み込み
-        bofData         = load('bagOfFeaturesData.mat');
-        loopDatabase    = invertedImageIndex(bofData.bof);
-        loopCandidates  = [1; 2];
-        
     % いくつかのキーフレームの作成後、ループクロージャを確認  
-    elseif currKeyFrameId > 20
+    if currKeyFrameId > 20
         
         % ループエッジにおける最小の特徴一致数
         loopEdgeNumMatches = 50;
         
         % ループクロージャ可能なキーフレーム候補の検出
         [isDetected, validLoopCandidates] = helperCheckLoopClosure(vSetKeyFrames, currKeyFrameId, ...
-            loopDatabase, currI, loopCandidates, loopEdgeNumMatches);
+            loopDatabase, currI, loopEdgeNumMatches);
         
         if isDetected 
             % ループクロージャの接続を追加
             [isLoopClosed, mapPointSet, vSetKeyFrames] = helperAddLoopConnections(...
                 mapPointSet, vSetKeyFrames, validLoopCandidates, currKeyFrameId, ...
-                currFeatures, currPoints, loopEdgeNumMatches);
+                currFeatures, loopEdgeNumMatches);
         end
     end
     
     % ループクロージャが検出できなかった場合はデータベースに画像を追加
     if ~isLoopClosed
-        addImages(loopDatabase,  subset(imds, currFrameIdx), 'Verbose', false);
-        loopCandidates= [loopCandidates; currKeyFrameId];
+        addImageFeatures(loopDatabase,  currFeatures, currKeyFrameId);
     end
     
     % 各種IDとインデックスを更新
@@ -360,7 +374,7 @@ end
 %% 全てのキーフレームで最適化
 
 % ポーズグラフの最適化
-minNumMatches      = 20;
+minNumMatches      = 30;
 [vSetKeyFramesOptim, poseScales] = optimizePoses(vSetKeyFrames, minNumMatches, 'Tolerance', 1e-16);
 
 % ポーズグラフの最適化後にマップ点を更新
